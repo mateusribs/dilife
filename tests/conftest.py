@@ -6,6 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from dilife.app import app
 from dilife.database import get_session
 from dilife.models import Base, User
+from dilife.security import get_password_hash
 
 
 @fixture
@@ -35,9 +36,25 @@ def client(session):
 
 @fixture
 def user(session):
-    user = User(username='foo', email='foo@bar.com', password='secret123')
+    user = User(
+        username='foo',
+        email='foo@bar.com',
+        password=get_password_hash('secret123'),
+    )
     session.add(user)
     session.commit()
     session.refresh(user)
 
+    user.clean_password = 'secret123'
+
     return user
+
+
+@fixture
+def token(client, user):
+    response = client.post(
+        '/auth/token',
+        data={'username': user.email, 'password': user.clean_password},
+    )
+
+    return response.json()['access_token']
