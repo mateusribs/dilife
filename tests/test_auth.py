@@ -56,3 +56,22 @@ def test_token_wrong_password(client, user):
 
     assert response.status_code == 400
     assert response.json() == {'detail': 'incorrect email or password'}
+
+
+def test_token_expired_not_able_to_refresh(client, user):
+    with freeze_time('2023-11-11 12:00:00'):
+        response = client.post(
+            '/auth/token',
+            data={'username': user.email, 'password': user.clean_password},
+        )
+
+        assert response.status_code == 200
+        token = response.json()['access_token']
+
+    with freeze_time('2023-11-11 12:31:00'):
+        response = client.post(
+            '/auth/refresh_token', headers={'Authorization': f'Bearer {token}'}
+        )
+
+        assert response.status_code == 401
+        assert response.json() == {'detail': 'could not validate credentials'}

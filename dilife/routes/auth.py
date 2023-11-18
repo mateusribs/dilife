@@ -8,7 +8,11 @@ from sqlalchemy.orm import Session
 from dilife.database import get_session
 from dilife.models import User
 from dilife.schemas import Token
-from dilife.security import create_access_token, get_current_user, verify_password
+from dilife.security import (
+    create_access_token,
+    get_current_user,
+    verify_password,
+)
 
 OAuth2Form = Annotated[OAuth2PasswordRequestForm, Depends()]
 Session = Annotated[Session, Depends(get_session)]
