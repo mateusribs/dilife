@@ -27,4 +27,3 @@ class CreditCardUpdate(BaseModel):
 
 class ListCreditCards(BaseModel):
     credit_cards: list[CreditCardPublic]
-
