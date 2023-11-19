@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from dilife.models import Account, User
+from dilife.models import Account, CreditCard, User
 
 
 def test_create_user(session):
@@ -26,3 +26,22 @@ def test_create_account(session: Session, user: User):
     user = session.scalar(select(User).where(User.id == user.id))
 
     assert account in user.accounts
+
+
+def test_create_credit_card(session: Session, user: User):
+    credit_card = CreditCard(
+        name='card test',
+        user_id=user.id,
+        limit=1500,
+        cycle_day=10,
+        due_day=15,
+        currency='BRL',
+    )
+
+    session.add(credit_card)
+    session.commit()
+    session.refresh(credit_card)
+
+    user = session.scalar(select(User).where(User.id == user.id))
+
+    assert credit_card in user.credit_cards
