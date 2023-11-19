@@ -1,4 +1,5 @@
 import factory
+import factory.fuzzy
 from fastapi.testclient import TestClient
 from pytest import fixture
 from sqlalchemy import StaticPool, create_engine
