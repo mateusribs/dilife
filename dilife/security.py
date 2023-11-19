@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from dilife.database import get_session
 from dilife.models import User
-from dilife.schemas import TokenData
+from dilife.schemas.token import TokenData
 from dilife.settings import Settings
 
 settings = Settings()

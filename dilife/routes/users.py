@@ -3,11 +3,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from starlette.types import Message
+from dilife.schemas.message import Message
 
 from dilife.database import get_session
 from dilife.models import User
-from dilife.schemas import UserList, UserPublic, UserSchema
+from dilife.schemas.users import UserList, UserPublic, UserSchema
 from dilife.security import get_current_user, get_password_hash
 
 Session = Annotated[Session, Depends(get_session)]
