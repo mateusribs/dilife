@@ -1,4 +1,4 @@
-from dilife.schemas import UserPublic
+from dilife.schemas.users import UserPublic
 
 
 def test_create_user(client):
