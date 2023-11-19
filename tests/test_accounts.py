@@ -109,3 +109,26 @@ def test_update_account_when_not_exists(client, token):
 
     assert response.status_code == 404
     assert response.json() == {'detail': 'account not found'}
+
+
+def test_delete_account_when_exists(session, client, user, token):
+    account = AccountFactory(user_id=user.id)
+
+    session.add(account)
+    session.commit()
+
+    response = client.delete(
+        f'/accounts/{account.id}', headers={'Authorization': f'Bearer {token}'}
+    )
+
+    assert response.status_code == 200
+    assert response.json()['detail'] == 'account deleted'
+
+
+def test_delete_account_when_not_exists(client, token):
+    response = client.delete(
+        '/accounts/10', headers={'Authorization': f'Bearer {token}'}
+    )
+
+    assert response.status_code == 404
+    assert response.json()['detail'] == 'account not found'
