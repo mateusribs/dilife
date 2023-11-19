@@ -1,4 +1,5 @@
 import datetime
+from enum import Enum
 
 from sqlalchemy import DateTime, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -7,6 +8,12 @@ from sqlalchemy.sql import func
 
 class Base(DeclarativeBase):
     pass
+
+
+class Currency(str, Enum):
+    brl = 'BRL'
+    usd = 'USD'
+    eur = 'EUR'
 
 
 class User(Base):
@@ -29,7 +36,7 @@ class Account(Base):
     name: Mapped[str]
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
     balance: Mapped[float]
-    currency: Mapped[str]
+    currency: Mapped[Currency]
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
