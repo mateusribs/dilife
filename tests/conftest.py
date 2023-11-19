@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 
 from dilife.app import app
 from dilife.database import get_session
-from dilife.models import Base, User
+from dilife.models import Account, Base, Currency, User
 from dilife.security import get_password_hash
 
 
@@ -19,6 +19,16 @@ class UserFactory(factory.Factory):
     username = factory.LazyAttribute(lambda obj: f'test{obj.id}')
     email = factory.LazyAttribute(lambda obj: f'{obj.username}@test.com')
     password = factory.LazyAttribute(lambda obj: f'{obj.username}secret2')
+
+
+class AccountFactory(factory.Factory):
+    class Meta:
+        model = Account
+
+    name = factory.Faker('text')
+    balance = factory.fuzzy.FuzzyDecimal(low=10, high=4000, precision=2)
+    currency = factory.fuzzy.FuzzyChoice(Currency)
+    user_id = 1
 
 
 @fixture

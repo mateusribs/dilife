@@ -1,3 +1,8 @@
+from pytest import mark
+
+from tests.conftest import AccountFactory
+
+
 def test_create_account(client, token):
     response = client.post(
         '/accounts/',
@@ -15,3 +20,65 @@ def test_create_account(client, token):
         'balance': 1000.50,
         'currency': 'BRL',
     }
+
+
+def test_list_accounts(session, client, user, token):
+    session.bulk_save_objects(AccountFactory.create_batch(5, user_id=user.id))
+    session.commit()
+
+    response = client.get(
+        '/accounts/', headers={'Authorization': f'Bearer {token}'}
+    )
+
+    assert len(response.json()['accounts']) == 5
+
+
+def test_list_accounts_pagination(session, user, client, token):
+    session.bulk_save_objects(AccountFactory.create_batch(5, user_id=user.id))
+    session.commit()
+
+    response = client.get(
+        '/accounts/?offset=1&limit=2',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert len(response.json()['accounts']) == 2
+
+
+@mark.parametrize('tested_currency, expected_len', [('BRL', 5), ('EUR', 0)])
+def test_list_accounts_filter_currency(
+    session, user, client, token, tested_currency, expected_len
+):
+    session.bulk_save_objects(
+        AccountFactory.create_batch(5, user_id=user.id, currency='BRL')
+    )
+    session.commit()
+
+    response = client.get(
+        f'/accounts/?currency={tested_currency}',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert len(response.json()['accounts']) == expected_len
+
+
+def test_list_accounts_complete_filters(session, user, client, token):
+    session.bulk_save_objects(
+        AccountFactory.create_batch(5, user_id=user.id, currency='BRL')
+    )
+    session.bulk_save_objects(
+        AccountFactory.create_batch(2, user_id=user.id, currency='EUR')
+    )
+    session.commit()
+
+    response1 = client.get(
+        '/accounts/?offset=1&limit=2&currency=BRL',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+    response2 = client.get(
+        '/accounts/?offset=0&limit=5&currency=EUR',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert len(response1.json()['accounts']) == 2
+    assert len(response2.json()['accounts']) == 2
