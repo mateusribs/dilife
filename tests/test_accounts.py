@@ -82,3 +82,30 @@ def test_list_accounts_complete_filters(session, user, client, token):
 
     assert len(response1.json()['accounts']) == 2
     assert len(response2.json()['accounts']) == 2
+
+
+def test_update_account_when_existst(session, client, user, token):
+    account = AccountFactory(user_id=user.id, currency='EUR')
+
+    session.add(account)
+    session.commit()
+
+    response = client.patch(
+        f'/accounts/{account.id}',
+        headers={'Authorization': f'Bearer {token}'},
+        json={'currency': 'BRL'},
+    )
+
+    assert response.status_code == 200
+    assert response.json()['currency'] == 'BRL'
+
+
+def test_update_account_when_not_exists(client, token):
+    response = client.patch(
+        '/accounts/10',
+        headers={'Authorization': f'Bearer {token}'},
+        json={},
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {'detail': 'account not found'}
