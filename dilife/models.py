@@ -27,6 +27,9 @@ class User(Base):
     accounts: Mapped[list['Account']] = relationship(
         back_populates='user', cascade='all, delete-orphan'
     )
+    credit_cards: Mapped[list['CreditCard']] = relationship(
+        back_populates='user', cascade='all, delete-orphan'
+    )
 
 
 class Account(Base):
@@ -42,3 +45,20 @@ class Account(Base):
     )
 
     user: Mapped[User] = relationship(back_populates='accounts')
+
+
+class CreditCard(Base):
+    __tablename__ = 'credit_cards'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str]
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+    limit: Mapped[float]
+    cycle_day: Mapped[int]
+    due_day: Mapped[int]
+    currency: Mapped[Currency]
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    user: Mapped[User] = relationship(back_populates='credit_cards')
