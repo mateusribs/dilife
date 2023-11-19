@@ -1,12 +1,17 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from dilife.database import get_session
 from dilife.models import Account, User
-from dilife.schemas.account import AccountPublic, AccountSchema, ListAccount
+from dilife.schemas.account import (
+    AccountPublic,
+    AccountSchema,
+    AccountUpdate,
+    ListAccount,
+)
 from dilife.security import get_current_user
 
 Session = Annotated[Session, Depends(get_session)]
@@ -50,3 +55,29 @@ def get_accounts_list(
     accounts = session.scalars(query.offset(offset).limit(limit)).all()
 
     return {'accounts': accounts}
+
+
+@router.patch('/{account_id}', status_code=200, response_model=AccountPublic)
+def update_account(
+    user: CurrentUser,
+    session: Session,
+    account: AccountUpdate,
+    account_id: int,
+):
+    db_account = session.scalar(
+        select(Account).where(
+            Account.id == account_id, Account.user_id == user.id
+        )
+    )
+
+    if not db_account:
+        raise HTTPException(status_code=404, detail='account not found')
+
+    for key, value in account.model_dump(exclude_unset=True).items():
+        setattr(db_account, key, value)
+
+    session.add(db_account)
+    session.commit()
+    session.refresh(db_account)
+
+    return db_account

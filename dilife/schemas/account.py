@@ -14,5 +14,10 @@ class AccountPublic(BaseModel):
     currency: str
 
 
+class AccountUpdate(BaseModel):
+    name: str | None = None
+    currency: str | None = None
+
+
 class ListAccount(BaseModel):
     accounts: list[AccountPublic]
