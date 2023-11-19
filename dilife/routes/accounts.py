@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from starlette.types import Message
 
 from dilife.database import get_session
 from dilife.models import Account, User
@@ -81,3 +82,24 @@ def update_account(
     session.refresh(db_account)
 
     return db_account
+
+
+@router.delete('/{account_id}', response_model=Message)
+def delete_account(
+    account_id: int,
+    session: Session,
+    user: CurrentUser,
+):
+    account = session.scalar(
+        select(Account).where(
+            Account.id == account_id, Account.user_id == user.id
+        )
+    )
+
+    if not account:
+        raise HTTPException(status_code=404, detail='account not found')
+
+    session.delete(account)
+    session.commit()
+
+    return {'detail': 'account deleted'}
