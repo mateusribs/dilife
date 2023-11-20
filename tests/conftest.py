@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 
 from dilife.app import app
 from dilife.database import get_session
-from dilife.models import Account, Base, Currency, User
+from dilife.models import Account, Base, CreditCard, Currency, User
 from dilife.security import get_password_hash
 
 
@@ -27,6 +27,18 @@ class AccountFactory(factory.Factory):
 
     name = factory.Faker('text')
     balance = factory.fuzzy.FuzzyDecimal(low=10, high=4000, precision=2)
+    currency = factory.fuzzy.FuzzyChoice(Currency)
+    user_id = 1
+
+
+class CreditCardFactory(factory.Factory):
+    class Meta:
+        model = CreditCard
+
+    name = factory.Faker('text')
+    limit = factory.fuzzy.FuzzyInteger(low=10, high=3000)
+    cycle_day = factory.fuzzy.FuzzyInteger(low=1, high=30)
+    due_day = factory.fuzzy.FuzzyInteger(low=1, high=30)
     currency = factory.fuzzy.FuzzyChoice(Currency)
     user_id = 1
 
