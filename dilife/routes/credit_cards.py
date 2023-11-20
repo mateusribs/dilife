@@ -1,11 +1,16 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from dilife.database import get_session
 from dilife.models import CreditCard, User
-from dilife.schemas.credit_card import CreditCardPublic, CreditCardSchema
+from dilife.schemas.credit_card import (
+    CreditCardPublic,
+    CreditCardSchema,
+    ListCreditCards,
+)
 from dilife.security import get_current_user
 
 Session = Annotated[Session, Depends(get_session)]
@@ -32,3 +37,18 @@ def create_credit_card(
     session.refresh(db_credit_card)
 
     return db_credit_card
+
+
+@router.get('/', status_code=200, response_model=ListCreditCards)
+def get_credit_cards_list(
+    user: CurrentUser,
+    session: Session,
+    offset: int = Query(None),
+    limit: int = Query(None),
+):
+
+    query = select(CreditCard).where(CreditCard.user_id == user.id)
+
+    credit_cards = session.scalars(query.offset(offset).limit(limit)).all()
+
+    return {'credit_cards': credit_cards}
