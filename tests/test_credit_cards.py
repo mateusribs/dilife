@@ -81,3 +81,27 @@ def test_update_credit_card_when_not_exists(client, token):
 
     assert response.status_code == 404
     assert response.json()['detail'] == 'credit card not found'
+
+
+def test_delete_credit_card_when_existst(session, client, token, user):
+    credit_card = CreditCardFactory(user_id=user.id)
+
+    session.add(credit_card)
+    session.commit()
+
+    response = client.delete(
+        f'/credit_cards/{credit_card.id}',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {'detail': 'credit card deleted'}
+
+
+def test_delete_credit_card_when_not_exists(client, token):
+    response = client.delete(
+        '/credit_cards/10', headers={'Authorization': f'Bearer {token}'}
+    )
+
+    assert response.status_code == 404
+    assert response.json()['detail'] == 'credit card not found'
