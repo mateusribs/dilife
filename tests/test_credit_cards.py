@@ -50,3 +50,34 @@ def test_get_credit_cards_pagination(session, client, token, user):
     )
 
     assert len(response.json()['credit_cards']) == 2
+
+
+def test_update_credit_card(session, client, token, user):
+    credit_card = CreditCardFactory(
+        user_id=user.id, name='test1', due_day=15, cycle_day=3
+    )
+
+    session.add(credit_card)
+    session.commit()
+
+    response = client.patch(
+        f'/credit_cards/{credit_card.id}',
+        headers={'Authorization': f'Bearer {token}'},
+        json={'name': 'test2', 'cycle_day': 15, 'due_day': 30},
+    )
+
+    assert response.status_code == 200
+    assert response.json()['name'] == 'test2'
+    assert response.json()['cycle_day'] == 15
+    assert response.json()['due_day'] == 30
+
+
+def test_update_credit_card_when_not_exists(client, token):
+    response = client.patch(
+        '/credit_cards/10',
+        headers={'Authorization': f'Bearer {token}'},
+        json={},
+    )
+
+    assert response.status_code == 404
+    assert response.json()['detail'] == 'credit card not found'
