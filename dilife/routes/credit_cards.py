@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from starlette.types import Message
 
 from dilife.database import get_session
 from dilife.models import CreditCard, User
@@ -81,3 +82,23 @@ def update_credit_card(
     session.refresh(db_credit_card)
 
     return db_credit_card
+
+
+@router.delete('/{credit_card_id}', response_model=Message)
+def delete_credit_card(
+    user: CurrentUser, session: Session, credit_card_id: int
+):
+
+    credit_card = session.scalar(
+        select(CreditCard).where(
+            CreditCard.id == credit_card_id, CreditCard.user_id == user.id
+        )
+    )
+
+    if not credit_card:
+        raise HTTPException(status_code=404, detail='credit card not found')
+
+    session.delete(credit_card)
+    session.commit()
+
+    return {'detail': 'credit card deleted'}
