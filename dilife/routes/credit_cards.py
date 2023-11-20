@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -9,6 +9,7 @@ from dilife.models import CreditCard, User
 from dilife.schemas.credit_card import (
     CreditCardPublic,
     CreditCardSchema,
+    CreditCardUpdate,
     ListCreditCards,
 )
 from dilife.security import get_current_user
@@ -52,3 +53,31 @@ def get_credit_cards_list(
     credit_cards = session.scalars(query.offset(offset).limit(limit)).all()
 
     return {'credit_cards': credit_cards}
+
+
+@router.patch(
+    '/{credit_card_id}', status_code=200, response_model=CreditCardPublic
+)
+def update_credit_card(
+    user: CurrentUser,
+    session: Session,
+    credit_card: CreditCardUpdate,
+    credit_card_id: int,
+):
+    db_credit_card = session.scalar(
+        select(CreditCard).where(
+            CreditCard.id == credit_card_id, CreditCard.user_id == user.id
+        )
+    )
+
+    if not db_credit_card:
+        raise HTTPException(status_code=404, detail='credit card not found')
+
+    for key, value in credit_card.model_dump(exclude_unset=True).items():
+        setattr(db_credit_card, key, value)
+
+    session.add(db_credit_card)
+    session.commit()
+    session.refresh(db_credit_card)
+
+    return db_credit_card
