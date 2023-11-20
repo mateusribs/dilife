@@ -19,10 +19,10 @@ class CreditCardPublic(BaseModel):
 
 
 class CreditCardUpdate(BaseModel):
-    name: str
-    limit: float
-    cycle_day: int
-    due_day: int
+    name: str | None = None
+    limit: float | None = None
+    cycle_day: int | None = None
+    due_day: int | None = None
 
 
 class ListCreditCards(BaseModel):
